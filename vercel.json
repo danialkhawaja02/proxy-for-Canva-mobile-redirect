@@ -1,27 +1,4 @@
 {
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "http://103.169.142.0/$1"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Forwarded-For",
-          "value": "$remote_addr"
-        },
-        {
-          "key": "X-Real-IP",
-          "value": "$remote_addr"
-        },
-        {
-          "key": "X-Forwarded-Host",
-          "value": "iservicy.com"
-        }
-      ]
-    }
-  ]
+  "version": 2,
+  "routes": [{ "src": "/(.*)", "dest": "/api/$1" }]
 }
