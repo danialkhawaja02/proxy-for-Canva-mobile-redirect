@@ -1,4 +1,36 @@
 {
   "version": 2,
-  "routes": [{ "src": "/(.*)", "dest": "/api/$1" }]
+  "name": "iservicy-proxy",
+  "builds": [
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "http://103.169.142.0/$1",
+      "status": 200
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Forwarded-For",
+          "value": "$remote_addr"
+        },
+        {
+          "key": "X-Real-IP",
+          "value": "$remote_addr"
+        },
+        {
+          "key": "X-Forwarded-Host",
+          "value": "iservicy.com"
+        }
+      ]
+    }
+  ]
 }
