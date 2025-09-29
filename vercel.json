@@ -1,6 +1,10 @@
 {
   "routes": [
     {
+      "src": "/dag0t-l7lu8/_assets/(.*)",
+      "dest": "/api/assets?path=$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "/api/proxy"
     }
