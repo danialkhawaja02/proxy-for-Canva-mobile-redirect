@@ -1,36 +1,23 @@
 export default async function handler(req, res) {
-  try {
-    const targetDomain = "https://emailsignatures2.my.canva.site";
-    const rootPath = "/dag0t-l7lu8";
+  const target = "https://emailsignatures2.my.canva.site/dag0t-l7lu8";
+  const url = `${target}${req.url}`;
 
-    const url = targetDomain + rootPath + (req.url === "/" ? "" : req.url);
+  const response = await fetch(url, {
+    headers: {
+      "user-agent": req.headers["user-agent"] || "",
+    },
+  });
 
-    const response = await fetch(url, {
-      headers: {
-        ...req.headers,
-        host: "emailsignatures2.my.canva.site",
-      },
+  let body = await response.text();
+  let contentType = response.headers.get("content-type") || "";
+
+  // If it's HTML, fix asset links
+  if (contentType.includes("text/html")) {
+    body = body.replace(/(src|href)="\/(.*?)"/g, (match, p1, p2) => {
+      return `${p1}="${target}/${p2}"`;
     });
-
-    // Copy headers except encoding
-    response.headers.forEach((value, key) => {
-      if (key.toLowerCase() !== "content-encoding") {
-        res.setHeader(key, value);
-      }
-    });
-
-    // Detect HTML → rewrite
-    if (response.headers.get("content-type")?.includes("text/html")) {
-      let body = await response.text();
-      body = body.replace(/emailsignatures2\.my\.canva\.site/g, "iservicy.com");
-      res.status(response.status).send(body);
-    } else {
-      // For assets (css, js, images) → stream raw bytes
-      const arrayBuffer = await response.arrayBuffer();
-      res.status(response.status).send(Buffer.from(arrayBuffer));
-    }
-  } catch (err) {
-    console.error("Proxy error:", err);
-    res.status(500).send("Proxy failed");
   }
+
+  res.setHeader("Content-Type", contentType);
+  res.status(response.status).send(body);
 }
