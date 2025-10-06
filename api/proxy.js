@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
-  const target =
+  const targetRoot =
     "https://preview.canva.site/093fb566-9784-4ded-a932-31bdbecb1496/iservicy.com";
-  const url = `${target}${req.url}`;
+  const url = `${targetRoot}${req.url}`;
 
   try {
     const response = await fetch(url, {
@@ -9,15 +9,29 @@ export default async function handler(req, res) {
     });
 
     let body = await response.text();
-    let contentType = response.headers.get("content-type") || "";
+    const contentType = response.headers.get("content-type") || "";
 
-    // If it's HTML, rewrite the asset URLs to use your proxy
+    // If it's HTML, rewrite links
     if (contentType.includes("text/html")) {
-      body = body.replace(
-        /(src|href)="\/093fb566-9784-4ded-a932-31bdbecb1496\/iservicy\.com\/_assets\/([^"]+)"/g,
-        (match, attr, file) =>
-          `${attr}="/093fb566-9784-4ded-a932-31bdbecb1496/iservicy.com/_assets/${file}"`
-      );
+      // Fix links for internal pages like About Us, Contact, etc.
+      body = body
+        // turn internal full paths into clean root-relative URLs
+        .replace(
+          /href="\/093fb566-9784-4ded-a932-31bdbecb1496\/iservicy\.com\/([^"]*)"/g,
+          (match, page) => `href="/${page}"`
+        )
+        // fix asset URLs to still load correctly from Canva or proxy
+        .replace(
+          /(src|href)="\/_assets\/([^"]+)"/g,
+          (match, attr, file) =>
+            `${attr}="/093fb566-9784-4ded-a932-31bdbecb1496/iservicy.com/_assets/${file}"`
+        )
+        // catch nested asset paths too
+        .replace(
+          /(src|href)="\/093fb566-9784-4ded-a932-31bdbecb1496\/iservicy\.com\/_assets\/([^"]+)"/g,
+          (match, attr, file) =>
+            `${attr}="/093fb566-9784-4ded-a932-31bdbecb1496/iservicy.com/_assets/${file}"`
+        );
     }
 
     res.setHeader("Content-Type", contentType);
