@@ -1,28 +1,47 @@
 export default async function handler(req, res) {
-  const canvaHost = "https://preview.canva.site";
-  const canvaPath = "/093fb566-9784-4ded-a932-31bdbecb1496/iservicy.com";
-  const targetRoot = `${canvaHost}${canvaPath}`;
+  const targetRoot =
+    "https://preview.canva.site/093fb566-9784-4ded-a932-31bdbecb1496/iservicy.com";
 
-  // Ensure req.url starts with a slash
-  const requestPath = req.url.startsWith("/") ? req.url : `/${req.url}`;
-  const url = `${targetRoot}${requestPath}`;
+  // handle query forwarding for /_api or /_online requests
+  const path = req.query.path ? `/${req.query.path}` : req.url;
+  const url = `${targetRoot}${path}`;
 
   try {
     const response = await fetch(url, {
       headers: { "user-agent": req.headers["user-agent"] || "" },
     });
 
-    let body = await response.text();
     const contentType = response.headers.get("content-type") || "";
 
-    // If it's HTML, rewrite all links to be root-relative to your domain
-    if (contentType.includes("text/html")) {
-      const canvaFullPathRegex = new RegExp(canvaPath, "g");
+    // Binary data (images, fonts, etc.)
+    if (!contentType.includes("text/") && !contentType.includes("json")) {
+      const buffer = await response.arrayBuffer();
+      res.setHeader("Content-Type", contentType);
+      res.status(response.status).send(Buffer.from(buffer));
+      return;
+    }
 
-      // This single replace handles everything:
-      // - href="/<canva_path>/about" becomes href="/about"
-      // - src="/<canva_path>/_assets/image.png" becomes src="/_assets/image.png"
-      body = body.replace(canvaFullPathRegex, "");
+    // For text or HTML
+    let body = await response.text();
+
+    if (contentType.includes("text/html")) {
+      // Clean internal URLs (like About Us → /about-us)
+      body = body
+        .replace(
+          /href="\/093fb566-9784-4ded-a932-31bdbecb1496\/iservicy\.com\/([^"]*)"/g,
+          (match, page) => `href="/${page}"`
+        )
+        // Fix asset URLs
+        .replace(
+          /(src|href)="\/_assets\/([^"]+)"/g,
+          (match, attr, file) => `${attr}="/_assets/${file}"`
+        )
+        // Handle internal API & ping requests
+        .replace(
+          /(src|href)="\/_api\/([^"]+)"/g,
+          (match, attr, file) => `${attr}="/_api/${file}"`
+        )
+        .replace(/"\/_online"/g, '"/_online"');
     }
 
     res.setHeader("Content-Type", contentType);

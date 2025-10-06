@@ -1,8 +1,6 @@
 export default async function handler(req, res) {
   try {
     const { path } = req.query;
-    // This target URL is still correct. It takes the relative asset path
-    // and correctly appends it to the Canva assets directory URL.
     const target = `https://preview.canva.site/093fb566-9784-4ded-a932-31bdbecb1496/iservicy.com/_assets/${path}`;
 
     const response = await fetch(target, {
@@ -20,6 +18,7 @@ export default async function handler(req, res) {
     const contentType =
       response.headers.get("content-type") || "application/octet-stream";
 
+    res.setHeader("Cache-Control", "public, max-age=86400");
     res.setHeader("Content-Type", contentType);
     res.status(200).send(Buffer.from(buffer));
   } catch (err) {

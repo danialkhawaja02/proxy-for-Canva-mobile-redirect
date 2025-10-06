@@ -5,6 +5,14 @@
       "dest": "/api/assets?path=$1"
     },
     {
+      "src": "/_api/(.*)",
+      "dest": "/api/proxy?path=_api/$1"
+    },
+    {
+      "src": "/_online",
+      "dest": "/api/proxy?path=_online"
+    },
+    {
       "src": "/(.*)",
       "dest": "/api/proxy"
     }
