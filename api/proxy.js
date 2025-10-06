@@ -1,7 +1,11 @@
 export default async function handler(req, res) {
-  const targetRoot =
-    "https://preview.canva.site/093fb566-9784-4ded-a932-31bdbecb1496/iservicy.com";
-  const url = `${targetRoot}${req.url}`;
+  const canvaHost = "https://preview.canva.site";
+  const canvaPath = "/093fb566-9784-4ded-a932-31bdbecb1496/iservicy.com";
+  const targetRoot = `${canvaHost}${canvaPath}`;
+
+  // Ensure req.url starts with a slash
+  const requestPath = req.url.startsWith("/") ? req.url : `/${req.url}`;
+  const url = `${targetRoot}${requestPath}`;
 
   try {
     const response = await fetch(url, {
@@ -11,27 +15,14 @@ export default async function handler(req, res) {
     let body = await response.text();
     const contentType = response.headers.get("content-type") || "";
 
-    // If it's HTML, rewrite links
+    // If it's HTML, rewrite all links to be root-relative to your domain
     if (contentType.includes("text/html")) {
-      // Fix links for internal pages like About Us, Contact, etc.
-      body = body
-        // turn internal full paths into clean root-relative URLs
-        .replace(
-          /href="\/093fb566-9784-4ded-a932-31bdbecb1496\/iservicy\.com\/([^"]*)"/g,
-          (match, page) => `href="/${page}"`
-        )
-        // fix asset URLs to still load correctly from Canva or proxy
-        .replace(
-          /(src|href)="\/_assets\/([^"]+)"/g,
-          (match, attr, file) =>
-            `${attr}="/093fb566-9784-4ded-a932-31bdbecb1496/iservicy.com/_assets/${file}"`
-        )
-        // catch nested asset paths too
-        .replace(
-          /(src|href)="\/093fb566-9784-4ded-a932-31bdbecb1496\/iservicy\.com\/_assets\/([^"]+)"/g,
-          (match, attr, file) =>
-            `${attr}="/093fb566-9784-4ded-a932-31bdbecb1496/iservicy.com/_assets/${file}"`
-        );
+      const canvaFullPathRegex = new RegExp(canvaPath, "g");
+
+      // This single replace handles everything:
+      // - href="/<canva_path>/about" becomes href="/about"
+      // - src="/<canva_path>/_assets/image.png" becomes src="/_assets/image.png"
+      body = body.replace(canvaFullPathRegex, "");
     }
 
     res.setHeader("Content-Type", contentType);
