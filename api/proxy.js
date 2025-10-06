@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  const target = "https://emailsignatures2.my.canva.site/dag0t-l7lu8";
+  const target = "https://preview.canva.site/093fb566-9784-4ded-a932-31bdbecb1496/iservicy.com";
   const url = `${target}${req.url}`;
 
   const response = await fetch(url, {
