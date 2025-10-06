@@ -14,7 +14,7 @@ export default async function handler(req, res) {
       return;
     }
 
-    const buffer = await response.arrayBuffer(); // read as raw bytes
+    const buffer = await response.arrayBuffer();
     const contentType =
       response.headers.get("content-type") || "application/octet-stream";
 

@@ -1,7 +1,7 @@
 {
   "routes": [
     {
-      "src": "/dag0t-l7lu8/_assets/(.*)",
+      "src": "/093fb566-9784-4ded-a932-31bdbecb1496/iservicy\\.com/_assets/(.*)",
       "dest": "/api/assets?path=$1"
     },
     {
