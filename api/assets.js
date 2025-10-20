@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   try {
     const { path } = req.query;
-    const target = `https://preview.canva.site/093fb566-9784-4ded-a932-31bdbecb1496/iservicy.com/_assets/${path}`;
+    const target = `https://iservicy.my.canva.site/_assets/${path}`;
 
     const response = await fetch(target, {
       headers: { "user-agent": req.headers["user-agent"] || "" },
