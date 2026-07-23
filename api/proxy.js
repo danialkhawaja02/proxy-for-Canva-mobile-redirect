@@ -1,5 +1,10 @@
 export default async function handler(req, res) {
-  const targetRoot = "https://iservicy.my.canva.site/mobile";
+  const host = req.headers.host || "";
+  const isMobile = host.startsWith("m.");
+
+  const targetRoot = isMobile
+    ? "https://iservicy.my.canva.site/mobile"
+    : "https://iservicy.my.canva.site";
 
   const path = req.query.path ? `/${req.query.path}` : req.url;
   const url = `${targetRoot}${path}`;
@@ -11,7 +16,6 @@ export default async function handler(req, res) {
 
     const contentType = response.headers.get("content-type") || "";
 
-    // Handle binary data (images, fonts, etc.)
     if (!contentType.includes("text/") && !contentType.includes("json")) {
       const buffer = await response.arrayBuffer();
       res.setHeader("Content-Type", contentType);
@@ -19,22 +23,7 @@ export default async function handler(req, res) {
       return;
     }
 
-    // Handle HTML and text
     let body = await response.text();
-
-    if (contentType.includes("text/html")) {
-      body = body
-        // Fix internal links like /about-us or /
-        .replace(/href="\/([^"]*)"/g, (match, page) => `href="/${page}"`)
-        // Fix asset references
-        .replace(
-          /(src|href)="\/_assets\/([^"]+)"/g,
-          (match, attr, file) => `${attr}="/_assets/${file}"`
-        )
-        // Handle internal API and ping requests
-        .replace(/"\/_online"/g, '"/_online"');
-    }
-
     res.setHeader("Content-Type", contentType);
     res.status(response.status).send(body);
   } catch (err) {
