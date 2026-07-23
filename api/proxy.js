@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  const targetRoot = "https://iservicy.my.canva.site";
+  const targetRoot = "https://iservicy.my.canva.site/mobile";
 
   const path = req.query.path ? `/${req.query.path}` : req.url;
   const url = `${targetRoot}${path}`;
