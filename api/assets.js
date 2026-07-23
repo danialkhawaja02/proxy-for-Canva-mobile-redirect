@@ -1,7 +1,12 @@
 export default async function handler(req, res) {
   try {
+    const host = req.headers.host || "";
+    const isMobile = host.startsWith("m.");
     const { path } = req.query;
-    const target = `https://iservicy.my.canva.site/_assets/${path}`;
+
+    const target = isMobile
+      ? `https://iservicy.my.canva.site/mobile/_assets/${path}`
+      : `https://iservicy.my.canva.site/_assets/${path}`;
 
     const response = await fetch(target, {
       headers: { "user-agent": req.headers["user-agent"] || "" },
